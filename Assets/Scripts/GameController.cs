@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System;
 
 public class GameController : MonoBehaviour {
 
@@ -12,6 +13,17 @@ public class GameController : MonoBehaviour {
 
     [Header("Score Components")]
     [SerializeField] private TextMeshProUGUI scoreText;
+
+    [Header("Game Over Components")]
+    [SerializeField] private GameObject gameOverScreen;
+
+    [Header("High Score Component")]
+    [SerializeField] private TextMeshProUGUI highScoreText;
+    private int highScore;
+
+    [Header("Gameplay Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip[] gameplayAudio;
 
     private int playerScore;
 
@@ -26,6 +38,11 @@ public class GameController : MonoBehaviour {
     private void Awake()
     {
         currentGameStatus = GameState.Waiting;
+
+        if (PlayerPrefs.HasKey("HighScore"))
+        {
+            highScoreText.text = PlayerPrefs.GetInt("HighScore").ToString();
+        }
     }
 
     private void Update()
@@ -38,7 +55,13 @@ public class GameController : MonoBehaviour {
     {
         timerImage.fillAmount = sliderCurrentFillAmount - (Time.deltaTime / gameTime);
         sliderCurrentFillAmount = timerImage.fillAmount;
+        if (sliderCurrentFillAmount <= 0f)
+        {
+            GameOver();
+        }
     }
+
+
 
     public void UpdatePlayerScore(int asteroidHitPoints)
     {
@@ -47,5 +70,52 @@ public class GameController : MonoBehaviour {
 
         playerScore += asteroidHitPoints; 
         scoreText.text = playerScore.ToString();
+    }
+
+    public void StartGame()
+    {
+        currentGameStatus = GameState.Playing;
+        PlayGameAudio(gameplayAudio[1], true);
+
+    }
+
+    private void GameOver()
+    {
+        currentGameStatus = GameState.GameOver;
+        //Show the game over screen
+        gameOverScreen.SetActive(true);
+
+        //check the high score
+        if (playerScore > PlayerPrefs.GetInt("HighScore"))
+        {
+            PlayerPrefs.SetInt("HighScore", playerScore);
+            highScoreText.text = playerScore.ToString();
+        }
+
+        //changing the audio
+        PlayGameAudio(gameplayAudio[2], false);
+    }
+
+    public void ResetGame()
+    {
+        currentGameStatus = GameState.Waiting;
+        
+        //put timer to 1
+        sliderCurrentFillAmount = 1f;
+        timerImage.fillAmount = 1f;
+
+        //reset the score
+        playerScore = 0;
+        scoreText.text = "0";
+
+        //play intro music
+        PlayGameAudio(gameplayAudio[0], true);
+    }
+
+    private void PlayGameAudio(AudioClip clipToPlay, bool shouldLoop)
+    {
+        audioSource.clip = clipToPlay;
+        audioSource.loop = shouldLoop;
+        audioSource.Play();
     }
 }

@@ -7,11 +7,11 @@ using UnityEngine.XR.Interaction.Toolkit;
 public class ReturnToOrigin : MonoBehaviour
 {
     [SerializeField] private Pose originPose;
-    private XRGrabInteractable grabinteractable;
+    private UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable grabinteractable;
 
     private void Awake()
     {
-        grabinteractable = GetComponent<XRGrabInteractable>();
+        grabinteractable = GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
         originPose.position = transform.position;
         originPose.rotation = transform.rotation;
     }
